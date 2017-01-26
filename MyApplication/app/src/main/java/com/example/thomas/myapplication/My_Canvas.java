@@ -19,15 +19,17 @@ import java.util.ArrayList;
 public class My_Canvas extends View {
     private Paint paint;
     Bitmap imageMap;
+    ArrayList<HarrisCornerFinder.HarrisCorner> lst;
     public My_Canvas(Context context) {
         super(context);
         // TODO Auto-generated constructor stub
         paint = new Paint();
         imageMap = BitmapFactory.decodeResource( getResources() , R.drawable.smallishfake);
-        imageMap = getResizedBitmap(imageMap, 500, 500);
+        // 3278 x 1681
+        imageMap = getResizedBitmap(imageMap, 1219, 625);
 
         HarrisCornerFinder hcf = new HarrisCornerFinder();
-        ArrayList<HarrisCornerFinder.HarrisCorner> lst = hcf.findCorners(imageMap);
+        lst = hcf.findCorners(imageMap);
     }
 
     // http://stackoverflow.com/questions/4837715/how-to-resize-a-bitmap-in-android
@@ -60,6 +62,12 @@ public class My_Canvas extends View {
             canvas.drawBitmap(imageMap, 0, 0, paint);
         else
             System.out.println("nope");
+
+        paint.setColor(Color.parseColor("#FF0000"));
+        for (int i = 0; i < lst.size(); ++i) {
+            canvas.drawCircle(lst.get(i).x, lst.get(i).y, (float) Math.sqrt(lst.get(i).n), paint);
+            System.out.println(lst.get(i).x + ":" + lst.get(i).y + ":" + lst.get(i).n);
+        }
 
         // Drawable d = getResources().getDrawable(R.drawable.foobar);
 //        d.setBounds(0, 0, 100, 100);

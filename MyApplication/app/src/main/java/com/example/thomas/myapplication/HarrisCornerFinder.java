@@ -5,16 +5,37 @@ package com.example.thomas.myapplication;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class HarrisCornerFinder {
+    public int median(Bitmap img, int x, int y) {
+        int img_w = img.getWidth();
+        int img_h = img.getHeight();
+
+        if (x == 0 || y == 0 || x == img_w-1 || y == img_h-1) {
+            return (int) (255 * Color.luminance(img.getPixel(x, y)));
+        }
+
+        ArrayList<Integer> lst = new ArrayList<Integer>();
+        for (int X = -1; X <= 1; ++X) {
+            for (int Y = -1; Y <= 1; ++Y) {
+                lst.add((int) (255 * Color.luminance(img.getPixel(x + X, y + Y))));
+            }
+        }
+
+        Collections.sort(lst);
+        return lst.get((int) Math.floor(lst.size()/2));
+    }
+
     public ArrayList<HarrisCorner> findCorners(Bitmap img) {
         // create a 2d array of intensities
+        long start_time = System.currentTimeMillis();
         int img_w = img.getWidth();
         int img_h = img.getHeight();
         int[][] intensities = new int[img_w][img_h];
         for (int x = 0; x < img_w; ++x) {
             for (int y = 0; y < img_h; ++y) {
-                intensities[x][y] = (int) (255 * Color.luminance(img.getPixel(x, y)));
+                intensities[x][y] = median(img, x, y); // (int) (255 * Color.luminance(img.getPixel(x, y)));
             }
         }
 
@@ -32,10 +53,10 @@ public class HarrisCornerFinder {
             cumXY[0][y] = 0;
             cumYY[0][y] = 0;
         }
-        for (int x = 1; x < img_w; ++x) {
-            for (int y = 1; y < img_h; ++y) {
-                float dx = intensities[x][y] - intensities[x-1][y];
-                float dy = intensities[x][y] - intensities[x][y-1];
+        for (int x = 1; x < img_w-1; ++x) {
+            for (int y = 1; y < img_h-1; ++y) {
+                float dx = intensities[x+1][y] - intensities[x-1][y];
+                float dy = intensities[x][y+1] - intensities[x][y-1];
                 cumXX[x][y] = cumXX[x-1][y] + cumXX[x][y-1] - cumXX[x-1][y-1] + dx * dx;
                 cumXY[x][y] = cumXY[x-1][y] + cumXY[x][y-1] - cumXY[x-1][y-1] + dx * dy;
                 cumYY[x][y] = cumYY[x-1][y] + cumYY[x][y-1] - cumYY[x-1][y-1] + dy * dy;
@@ -69,6 +90,7 @@ public class HarrisCornerFinder {
                         }
                         else {
                             // part of an existing corner
+                            intensities[x][y] = -1 * corner;
                             megaList.get(corner-1).x += x + w/2;
                             megaList.get(corner-1).y += y + h/2;
                             megaList.get(corner-1).n += 1;
@@ -82,6 +104,11 @@ public class HarrisCornerFinder {
             megaList.get(i).x /= megaList.get(i).n;
             megaList.get(i).y /= megaList.get(i).n;
         }
+
+        long end_time = System.currentTimeMillis();
+        long long_time_diff = end_time - start_time;
+        System.out.println("-------------");
+        System.out.println(long_time_diff);
 
         return megaList;
     }
@@ -101,7 +128,7 @@ public class HarrisCornerFinder {
         }
 
         if (y > 0 && isCorner[x][y-1] < 0 ) {
-            return -1 * isCorner[x-1][y];
+            return -1 * isCorner[x][y-1];
         }
 
         if (x < isCorner.length - 1 && isCorner[x+1][y] < 0 ) {
@@ -109,7 +136,7 @@ public class HarrisCornerFinder {
         }
 
         if (y < isCorner[0].length - 1 && isCorner[x+1][y] < 0 ) {
-            return -1 * isCorner[x][y+1];
+            return -1 * isCorner[x+1][y];
         }
 
         return -1;
