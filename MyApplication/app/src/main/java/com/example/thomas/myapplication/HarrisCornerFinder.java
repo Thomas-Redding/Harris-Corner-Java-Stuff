@@ -5,39 +5,86 @@ package com.example.thomas.myapplication;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 
-public class HarrisCornerFinder {
-    public int median(Bitmap img, int x, int y) {
-        int img_w = img.getWidth();
-        int img_h = img.getHeight();
+/*
+ *  2% - getting the pixels
+ * 36% - getting the intensities
+ * 41% - blurring
+ *  5% - cumulating
+ *  16% - finding corners using eigenvalues
+ * 1156 pixels per millisecond
+ */
 
-        if (x == 0 || y == 0 || x == img_w-1 || y == img_h-1) {
-            return (int) (255 * Color.luminance(img.getPixel(x, y)));
+public class HarrisCornerFinder {
+    private int median(int[] intensities, int x, int y, int w, int h) {
+        if (x == 0 || y == 0 || x == w-1 || y == h-1) {
+            int i = x + y * w;
+            return intensities[i];
         }
 
-        ArrayList<Integer> lst = new ArrayList<Integer>();
+        int rtn = 0;
         for (int X = -1; X <= 1; ++X) {
             for (int Y = -1; Y <= 1; ++Y) {
-                lst.add((int) (255 * Color.luminance(img.getPixel(x + X, y + Y))));
+                rtn += intensities[(x+X) + (y+Y) * w];
             }
         }
+        return rtn / 9;
 
-        Collections.sort(lst);
-        return lst.get((int) Math.floor(lst.size()/2));
+        /*
+        int[] lst = new int[9];
+        int counter = 0;
+        for (int X = -1; X <= 1; ++X) {
+            for (int Y = -1; Y <= 1; ++Y) {
+                lst[counter] = intensities[(x+X) + (y+Y) * w];
+                ++counter;
+            }
+        }
+        Arrays.sort(lst);
+        return lst[4];
+        */
+    }
+
+    private int[][] blurIntensities(int[] intense, int w, int h) {
+        // 12 micro-seconds
+        // (int) (255 * Color.luminance(img.getPixel(x, y)));
+        // our current way is ~12 times faster
+
+        int[][] rtn = new int[w][h];
+        int i;
+        for (int x = 0; x < w; ++x) {
+            for (int y = 0; y < h; ++y) {
+                rtn[x][y] = median(intense, x, y, w, h);
+            }
+        }
+        return rtn;
     }
 
     public ArrayList<HarrisCorner> findCorners(Bitmap img) {
         // create a 2d array of intensities
-        long start_time = System.currentTimeMillis();
         int img_w = img.getWidth();
         int img_h = img.getHeight();
-        int[][] intensities = new int[img_w][img_h];
-        for (int x = 0; x < img_w; ++x) {
-            for (int y = 0; y < img_h; ++y) {
-                intensities[x][y] = median(img, x, y); // (int) (255 * Color.luminance(img.getPixel(x, y)));
-            }
+        System.out.println(img_w + " x " + img_h);
+        long start_time = System.currentTimeMillis();
+
+        int[] intense = new int[img_w * img_h];
+        img.getPixels(intense, 0, img_w, 0, 0, img_w, img_h);
+
+        long pixels_time = System.currentTimeMillis();
+
+        int red, green, blue;
+        for (int i = 0; i < intense.length; ++i) {
+            red   = (0xFF000000 & intense[i]) / 16777216;
+            green = (0x00FF0000 & intense[i]) / 65536;
+            blue  = (0x0000FF00 & intense[i]) / 256;
+            intense[i] = (red + green + blue) / 3;
         }
+
+        long intensities_time = System.currentTimeMillis();
+
+        int[][] intensities = blurIntensities(intense, img_w, img_h);
+        long blur_time = System.currentTimeMillis();
 
         // compute cummulative tables
         float[][] cumXX = new float[img_w][img_h];
@@ -62,6 +109,8 @@ public class HarrisCornerFinder {
                 cumYY[x][y] = cumYY[x-1][y] + cumYY[x][y-1] - cumYY[x-1][y-1] + dy * dy;
             }
         }
+
+        long cumulation_time = System.currentTimeMillis();
 
         int w = 6;   // must be even
         int h = 6;   // must be even
@@ -99,6 +148,14 @@ public class HarrisCornerFinder {
                 }
             }
         }
+
+        long eigen_time = System.currentTimeMillis();
+
+        System.out.println("Pixels: " + (pixels_time - start_time));
+        System.out.println("Intens: " + (intensities_time - pixels_time));
+        System.out.println("Blurss: " + (blur_time  - intensities_time));
+        System.out.println("Cumuls: " + (cumulation_time - blur_time));
+        System.out.println("Eigens: " + (eigen_time - cumulation_time));
 
         for (int i = 0; i < megaList.size(); ++i) {
             megaList.get(i).x /= megaList.get(i).n;

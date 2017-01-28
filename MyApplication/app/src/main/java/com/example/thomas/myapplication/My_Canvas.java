@@ -66,7 +66,7 @@ public class My_Canvas extends View {
         paint.setColor(Color.parseColor("#FF0000"));
         for (int i = 0; i < lst.size(); ++i) {
             canvas.drawCircle(lst.get(i).x, lst.get(i).y, (float) Math.sqrt(lst.get(i).n), paint);
-            System.out.println(lst.get(i).x + ":" + lst.get(i).y + ":" + lst.get(i).n);
+            // System.out.println(lst.get(i).x + ":" + lst.get(i).y + ":" + lst.get(i).n);
         }
 
         // Drawable d = getResources().getDrawable(R.drawable.foobar);
