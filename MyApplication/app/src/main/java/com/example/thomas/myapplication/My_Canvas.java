@@ -19,17 +19,19 @@ import java.util.ArrayList;
 public class My_Canvas extends View {
     private Paint paint;
     Bitmap imageMap;
-    ArrayList<HarrisCornerFinder.HarrisCorner> lst;
+    HarrisCornerFinder.Array2D_List_Pair corner_info;
+    TableCornerFinder.IntPair[] table_corners;
     public My_Canvas(Context context) {
         super(context);
-        // TODO Auto-generated constructor stub
         paint = new Paint();
-        imageMap = BitmapFactory.decodeResource( getResources() , R.drawable.smallishfake);
-        // 3278 x 1681
-        imageMap = getResizedBitmap(imageMap, 1219, 625);
-
+        imageMap = BitmapFactory.decodeResource( getResources() , R.drawable.vertical);
+        imageMap = getResizedBitmap(imageMap, 800, 410);
         HarrisCornerFinder hcf = new HarrisCornerFinder();
-        lst = hcf.findCorners(imageMap);
+        corner_info = hcf.findCorners(imageMap);
+        TableCornerFinder tcf = new TableCornerFinder();
+        System.out.println("START");
+        table_corners = tcf.findTableCorners(imageMap, corner_info.lst, corner_info.arr);
+        System.out.println("END");
     }
 
     // http://stackoverflow.com/questions/4837715/how-to-resize-a-bitmap-in-android
@@ -38,14 +40,9 @@ public class My_Canvas extends View {
         int height = bm.getHeight();
         float scaleWidth = ((float) newWidth) / width;
         float scaleHeight = ((float) newHeight) / height;
-        // CREATE A MATRIX FOR THE MANIPULATION
         Matrix matrix = new Matrix();
-        // RESIZE THE BIT MAP
         matrix.postScale(scaleWidth, scaleHeight);
-
-        // "RECREATE" THE NEW BITMAP
-        Bitmap resizedBitmap = Bitmap.createBitmap(
-                bm, 0, 0, width, height, matrix, false);
+        Bitmap resizedBitmap = Bitmap.createBitmap(bm, 0, 0, width, height, matrix, false);
         bm.recycle();
         return resizedBitmap;
     }
@@ -54,23 +51,21 @@ public class My_Canvas extends View {
     protected void onDraw(Canvas canvas)
     {
         super.onDraw(canvas);
-        // Use Color.parseColor to define HTML colors
         paint.setColor(Color.parseColor("#FF0000"));
         canvas.drawCircle(80, 80, 40, paint);
-//        imageMap.draw(canvas);
         if (imageMap != null)
             canvas.drawBitmap(imageMap, 0, 0, paint);
         else
             System.out.println("nope");
 
         paint.setColor(Color.parseColor("#FF0000"));
-        for (int i = 0; i < lst.size(); ++i) {
-            canvas.drawCircle(lst.get(i).x, lst.get(i).y, (float) Math.sqrt(lst.get(i).n), paint);
-            // System.out.println(lst.get(i).x + ":" + lst.get(i).y + ":" + lst.get(i).n);
+        for (int i = 0; i < corner_info.lst.size(); ++i) {
+            canvas.drawCircle(corner_info.lst.get(i).x, corner_info.lst.get(i).y, (float) Math.sqrt(corner_info.lst.get(i).n), paint);
         }
 
-        // Drawable d = getResources().getDrawable(R.drawable.foobar);
-//        d.setBounds(0, 0, 100, 100);
-//        d.draw(canvas);
+        paint.setColor(Color.parseColor("#0000FF"));
+        for (int i = 0; i < table_corners.length; ++i) {
+            canvas.drawCircle(table_corners[i].x, table_corners[i].y, 5, paint);
+        }
     }
 }

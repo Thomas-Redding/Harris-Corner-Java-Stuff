@@ -61,7 +61,16 @@ public class HarrisCornerFinder {
         return rtn;
     }
 
-    public ArrayList<HarrisCorner> findCorners(Bitmap img) {
+    public class Array2D_List_Pair {
+        public ArrayList<HarrisCorner> lst;
+        public int[][] arr;
+        public Array2D_List_Pair(ArrayList<HarrisCorner> lst, int[][] arr) {
+            this.lst = lst;
+            this.arr =arr;
+        }
+    }
+
+    public Array2D_List_Pair findCorners(Bitmap img) {
         // create a 2d array of intensities
         int img_w = img.getWidth();
         int img_h = img.getHeight();
@@ -112,8 +121,8 @@ public class HarrisCornerFinder {
 
         long cumulation_time = System.currentTimeMillis();
 
-        int w = 6;   // must be even
-        int h = 6;   // must be even
+        int w = 10;   // must be even
+        int h = 10;   // must be even
         double dist_threshold = 30000;
         double angle_threshold = 0.4;
         ArrayList<HarrisCorner> megaList = new ArrayList<HarrisCorner>();
@@ -161,13 +170,16 @@ public class HarrisCornerFinder {
             megaList.get(i).x /= megaList.get(i).n;
             megaList.get(i).y /= megaList.get(i).n;
         }
+        // megaList.clear();
+        // megaList.add(new HarrisCorner(224, 76));
+        // megaList.get(megaList.size()-1).n = 20;
 
         long end_time = System.currentTimeMillis();
         long long_time_diff = end_time - start_time;
         System.out.println("-------------");
         System.out.println(long_time_diff);
 
-        return megaList;
+        return new Array2D_List_Pair(megaList, intensities);
     }
 
     /*
@@ -207,7 +219,7 @@ public class HarrisCornerFinder {
         }
         int x = 0;
         int y = 0;
-        int n = 0;
+        int n;
     }
 
     private float[] compute_eigenvalues(float A, float B, float C) {
