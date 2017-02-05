@@ -19,18 +19,22 @@ import java.util.ArrayList;
 public class My_Canvas extends View {
     private Paint paint;
     Bitmap imageMap;
-    HarrisCornerFinder.Array2D_List_Pair corner_info;
-    TableCornerFinder.IntPair[] table_corners;
+    // HarrisCornerFinder.Array2D_List_Pair corner_info;
+    // TableCornerFinder.IntPair[] table_corners;
+    int[][] stuff;
     public My_Canvas(Context context) {
         super(context);
         paint = new Paint();
         imageMap = BitmapFactory.decodeResource( getResources() , R.drawable.vertical);
         imageMap = getResizedBitmap(imageMap, 800, 410);
-        HarrisCornerFinder hcf = new HarrisCornerFinder();
-        corner_info = hcf.findCorners(imageMap);
-        TableCornerFinder tcf = new TableCornerFinder();
+        // HarrisCornerFinder hcf = new HarrisCornerFinder();
+        // corner_info = hcf.findCorners(imageMap);
+        // TableCornerFinder tcf = new TableCornerFinder();
         System.out.println("START");
-        table_corners = tcf.findTableCorners(imageMap, corner_info.lst, corner_info.arr);
+        // table_corners = tcf.findTableCorners(imageMap, corner_info.lst, corner_info.arr);
+        // System.out.println("MID");
+        StatsMethod sm = new StatsMethod();
+        stuff = sm.findCorners(imageMap);
         System.out.println("END");
     }
 
@@ -51,13 +55,20 @@ public class My_Canvas extends View {
     protected void onDraw(Canvas canvas)
     {
         super.onDraw(canvas);
-        paint.setColor(Color.parseColor("#FF0000"));
-        canvas.drawCircle(80, 80, 40, paint);
         if (imageMap != null)
             canvas.drawBitmap(imageMap, 0, 0, paint);
         else
             System.out.println("nope");
 
+        paint.setColor(Color.parseColor("#FF0000"));
+        for (int x = 0; x < stuff.length; x++) {
+            for (int y = 0; y < stuff[0].length; ++y) {
+                if (stuff[x][y] == 2)
+                    canvas.drawCircle(x, y, 1, paint);
+            }
+        }
+
+        /*
         paint.setColor(Color.parseColor("#FF0000"));
         for (int i = 0; i < corner_info.lst.size(); ++i) {
             canvas.drawCircle(corner_info.lst.get(i).x, corner_info.lst.get(i).y, (float) Math.sqrt(corner_info.lst.get(i).n), paint);
@@ -67,5 +78,6 @@ public class My_Canvas extends View {
         for (int i = 0; i < table_corners.length; ++i) {
             canvas.drawCircle(table_corners[i].x, table_corners[i].y, 5, paint);
         }
+        */
     }
 }

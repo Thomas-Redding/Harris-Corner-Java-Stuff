@@ -123,17 +123,41 @@ public class HarrisCornerFinder {
 
         int w = 10;   // must be even
         int h = 10;   // must be even
-        double dist_threshold = 30000;
-        double angle_threshold = 0.4;
+        double dist_threshold = 20000;
+        double angle_threshold = 0.15;
+        boolean use_circle = true;
         ArrayList<HarrisCorner> megaList = new ArrayList<HarrisCorner>();
 
 
-        for (int x = 0; x < img_w - w; ++x) {
-            for (int y = 0; y < img_h - h; ++y) {
+        for (int x = 1; x < img_w - w - 1; ++x) {
+            for (int y = 1; y < img_h - h - 1; ++y) {
                 float A = cumXX[x + w][y + h] + cumXX[x][y] - cumXX[x + w][y] - cumXX[x][y + h];
                 float B = cumXY[x + w][y + h] + cumXY[x][y] - cumXY[x + w][y] - cumXY[x][y + h];
                 float C = cumYY[x + w][y + h] + cumYY[x][y] - cumYY[x + w][y] - cumYY[x][y + h];
+                if (use_circle) {
+                    A = 0; B = 0; C = 0;
+                    for (int X = 0; X < w; ++X) {
+                        for (int Y = 0; Y < h; ++Y) {
+                            if ((X-w/2)*(X-w/2)+(Y-h/2)*(Y-h/2) < (w*w+h*h)/4) {
+                                float dx = intensities[x+X+1][y+Y] - intensities[x+X-1][y+Y];
+                                float dy = intensities[x+X][y+Y+1] - intensities[x+X][y+Y-1];
+                                A += dx*dx;
+                                B += dx*dy;
+                                C += dy*dy;
+                            }
+                        }
+                    }
+                }
                 float[] eigens = compute_eigenvalues(A, B, C);
+                if (x + w/2 == 224 && y + h/2 == 76) {
+                    System.out.println("******");
+                    System.out.println(A);
+                    System.out.println(B);
+                    System.out.println(C);
+                    System.out.println(eigens[0]);
+                    System.out.println(eigens[1]);
+                    System.out.println("~~~~~~");
+                }
 
                 if (eigens[0]+eigens[1] > dist_threshold) {
                     // we are an edge or a corner
