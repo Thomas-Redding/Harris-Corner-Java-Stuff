@@ -7,10 +7,8 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.drawable.Drawable;
 import android.view.View;
 
-import java.util.ArrayList;
 import java.util.Set;
 
 /**
@@ -22,7 +20,7 @@ public class My_Canvas extends View {
     Bitmap imageMap;
     // HarrisCornerFinder.Array2D_List_Pair corner_info;
     // TableCornerFinder.IntPair[] table_corners;
-    Set<StatsMethod.IntPair> stuff;
+    Set<IntPair> stuff;
     public My_Canvas(Context context) {
         super(context);
         paint = new Paint();
@@ -37,7 +35,7 @@ public class My_Canvas extends View {
         System.out.println("START");
         // table_corners = tcf.findTableCorners(imageMap, corner_info.lst, corner_info.arr);
         // System.out.println("MID");
-        StatsMethod sm = new StatsMethod();
+        PaintMethod sm = new PaintMethod();
         stuff = sm.findCorners(imageMap);
         System.out.println("END");
     }
@@ -65,7 +63,7 @@ public class My_Canvas extends View {
             System.out.println("nope");
 
         paint.setColor(Color.parseColor("#FF0000"));
-        for (StatsMethod.IntPair pt : stuff) {
+        for (IntPair pt : stuff) {
             canvas.drawCircle(pt.x, pt.y, 3, paint);
         }
 
