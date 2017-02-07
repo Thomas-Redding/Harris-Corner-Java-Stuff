@@ -27,6 +27,16 @@ public class StatsMethod {
         }
 
         @Override
+        public boolean equals(Object o) {
+            return (o instanceof IntPair) && ((IntPair) o).x == this.x && ((IntPair) o).y == this.y;
+        }
+
+        @Override
+        public int hashCode() {
+            return this.x * 10000000 + this.y;
+        }
+
+        @Override
         public int compareTo(IntPair other) {
             return (1000000 * x + y) - (1000000 * other.x + other.y);
         }
@@ -253,53 +263,62 @@ public class StatsMethod {
         long processing_time = System.currentTimeMillis();
 
         TreeSet<IntPair> pixels_to_look_at = new TreeSet<IntPair>();
-        TreeSet<IntPair> pixels_looked_at = new TreeSet<IntPair>();
+        HashSet<IntPair> pixels_looked_at = new HashSet<IntPair>();
         pixels_to_look_at.add(new IntPair(w/2, h/2));
+        pixels_looked_at.add(new IntPair(w/2, h/2));
 
         boolean[][] table = new boolean[w][h];
 
         int diff;
         int threshold = 4;
+        int yams = 0;
         while (!pixels_to_look_at.isEmpty()) {
             IntPair pixel = pixels_to_look_at.first();
-            pixels_looked_at.add(pixel);
             pixels_to_look_at.remove(pixel);
             if (pixel.x != 0) {
-                diff = Math.abs(intensities[pixel.x - 1][pixel.y] - intensities[pixel.x][pixel.y]);
-                if (diff < threshold) {
+                if (Math.abs(intensities[pixel.x - 1][pixel.y] - intensities[pixel.x][pixel.y]) < threshold) {
                     IntPair new_pixel = new IntPair(pixel.x - 1, pixel.y);
-                    if (!pixels_looked_at.contains(new_pixel))
+                    if (!pixels_looked_at.contains(new_pixel)) {
+                        pixels_looked_at.add(new_pixel);
                         pixels_to_look_at.add(new_pixel);
+                    }
                 }
             }
             if (pixel.y != 0) {
-                diff = Math.abs(intensities[pixel.x][pixel.y - 1] - intensities[pixel.x][pixel.y]);
-                if (diff < threshold) {
+                if (Math.abs(intensities[pixel.x][pixel.y - 1] - intensities[pixel.x][pixel.y]) < threshold) {
                     IntPair new_pixel = new IntPair(pixel.x, pixel.y - 1);
-                    if (!pixels_looked_at.contains(new_pixel))
+                    if (!pixels_looked_at.contains(new_pixel)) {
+                        pixels_looked_at.add(new_pixel);
                         pixels_to_look_at.add(new_pixel);
+                    }
                 }
             }
             if (pixel.x != w - 1) {
-                diff = Math.abs(intensities[pixel.x + 1][pixel.y] - intensities[pixel.x][pixel.y]);
-                if (diff < threshold) {
+                if (Math.abs(intensities[pixel.x + 1][pixel.y] - intensities[pixel.x][pixel.y]) < threshold) {
                     IntPair new_pixel = new IntPair(pixel.x + 1, pixel.y);
-                    if (!pixels_looked_at.contains(new_pixel))
+                    if (!pixels_looked_at.contains(new_pixel)) {
+                        pixels_looked_at.add(new_pixel);
                         pixels_to_look_at.add(new_pixel);
+                    }
                 }
             }
             if (pixel.y != h - 1) {
-                diff = Math.abs(intensities[pixel.x][pixel.y + 1] - intensities[pixel.x][pixel.y]);
-                if (diff < threshold) {
+                if (Math.abs(intensities[pixel.x][pixel.y + 1] - intensities[pixel.x][pixel.y]) < threshold) {
                     IntPair new_pixel = new IntPair(pixel.x, pixel.y + 1);
-                    if (!pixels_looked_at.contains(new_pixel))
+                    if (!pixels_looked_at.contains(new_pixel)) {
+                        pixels_looked_at.add(new_pixel);
                         pixels_to_look_at.add(new_pixel);
+                    }
                 }
             }
             table[pixel.x][pixel.y] = true;
+            ++yams;
         }
 
+
         long painting_time = System.currentTimeMillis();
+        System.out.println("#" + yams);
+
 
         int[][] borders = new int[w][h];
         IntPair farthest_point = new IntPair(w/2, h/2);
@@ -323,7 +342,7 @@ public class StatsMethod {
         long borders_time = System.currentTimeMillis();
 
         pixels_to_look_at = new TreeSet<IntPair>();
-        pixels_looked_at = new TreeSet<IntPair>();
+        pixels_looked_at = new HashSet<IntPair>();
         pixels_to_look_at.add(farthest_point);
 
         while (!pixels_to_look_at.isEmpty()) {
