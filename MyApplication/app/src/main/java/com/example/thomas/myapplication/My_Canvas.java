@@ -11,6 +11,7 @@ import android.graphics.drawable.Drawable;
 import android.view.View;
 
 import java.util.ArrayList;
+import java.util.Set;
 
 /**
  * Created by thomas on 1/25/17.
@@ -21,11 +22,14 @@ public class My_Canvas extends View {
     Bitmap imageMap;
     // HarrisCornerFinder.Array2D_List_Pair corner_info;
     // TableCornerFinder.IntPair[] table_corners;
-    int[][] stuff;
+    Set<StatsMethod.IntPair> stuff;
     public My_Canvas(Context context) {
         super(context);
         paint = new Paint();
-        imageMap = BitmapFactory.decodeResource( getResources() , R.drawable.vertical);
+        imageMap = BitmapFactory.decodeResource( getResources() , R.drawable.horizontal);
+        // imageMap = BitmapFactory.decodeResource( getResources() , R.drawable.vertical);
+        // imageMap = BitmapFactory.decodeResource( getResources() , R.drawable.angleda);
+        // imageMap = BitmapFactory.decodeResource( getResources() , R.drawable.angledb);
         imageMap = getResizedBitmap(imageMap, 800, 410);
         // HarrisCornerFinder hcf = new HarrisCornerFinder();
         // corner_info = hcf.findCorners(imageMap);
@@ -61,11 +65,8 @@ public class My_Canvas extends View {
             System.out.println("nope");
 
         paint.setColor(Color.parseColor("#FF0000"));
-        for (int x = 0; x < stuff.length; x++) {
-            for (int y = 0; y < stuff[0].length; ++y) {
-                if (stuff[x][y] == 2)
-                    canvas.drawCircle(x, y, 1, paint);
-            }
+        for (StatsMethod.IntPair pt : stuff) {
+            canvas.drawCircle(pt.x, pt.y, 3, paint);
         }
 
         /*
