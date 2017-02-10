@@ -12,6 +12,18 @@ import java.util.TreeSet;
  */
 
 public class PaintMethod {
+    private void print_magic(int[][] magic, int step) {
+        String str = "";
+        System.out.println(magic.length + " : " + step);
+        for (int y = 0; y < magic[0].length; y += step) {
+            for (int x = 0; x < magic.length; x += step/2) {
+                str += (int) (magic[x][y]/1000);
+            }
+            str += "\n";
+        }
+        System.out.println(str);
+    }
+
     /*
      * This function takes a 2d array representing a set of points.
      * It then rotates the coordinate axes by theta, and finds the points with the smallest and
@@ -21,7 +33,7 @@ public class PaintMethod {
      * @param theta - angle of the "x-axis"
      * @return array of the 4 extrema
      */
-    private IntPair[] find_extrema(int[][] points, double theta) {
+    private IntPair[] find_extrema(int[][] magic, double theta) {
         double cos = Math.cos(theta);
         double sin = Math.sin(theta);
         double adj;
@@ -36,9 +48,9 @@ public class PaintMethod {
         double max_opp = -1e300;
         IntPair max_opp_pt = new IntPair(0, 0);
 
-        for (int x = 0; x < points.length; ++x) {
-            for (int y = 0; y < points[x].length; ++y) {
-                if (points[x][y] < 2)
+        for (int x = 0; x < magic.length; ++x) {
+            for (int y = 0; y < magic[x].length; ++y) {
+                if (magic[x][y] < 5000)
                     continue;
 
                 adj = cos * x + sin * y;
@@ -94,21 +106,32 @@ public class PaintMethod {
         return max_key;
     }
 
+    public TreeSet<IntPair> findCorners(Bitmap img) {
+        return findCorners(img, img.getWidth()/2, img.getHeight()/2);
+    }
+
     /*
      * Find the corners of a table near the center of the image
      *
      * @param img - the bitmap to find the table of
      * @return a set of corner-coordinates
      */
-    public TreeSet<IntPair> findCorners(Bitmap img) {
+    public TreeSet<IntPair> findCorners(Bitmap img, int center_x, int center_y) {
         long start_time = System.currentTimeMillis();
         int w = img.getWidth();
         int h = img.getHeight();
 
-
         // compute a 2d array of intensities
         int[] intense = new int[w * h];
-        int[][] intensities = new int[w][h];
+        /*
+         * 0    -  255      intensities
+         * 1000 - 1255      looked at
+         * 2000 - 2255      table (painted)
+         * 3000 - 3255      (bad) edge
+         * 4000 - 4255      looked at
+         * 5000 - 5255      (good) edge
+         */
+        int[][] magic = new int[w][h];
         img.getPixels(intense, 0, w, 0, 0, w, h);
         int red, green, blue, i;
         for (int x = 0; x < w; ++x) {
@@ -117,7 +140,7 @@ public class PaintMethod {
                 red   = (0xFF000000 & intense[i]) / 16777216;
                 green = (0x00FF0000 & intense[i]) / 65536;
                 blue  = (0x0000FF00 & intense[i]) / 256;
-                intensities[x][y] = (red + green + blue) / 3;
+                magic[x][y] = (red + green + blue) / 3;
             }
         }
         long processing_time = System.currentTimeMillis();
@@ -125,64 +148,61 @@ public class PaintMethod {
 
         // "paint" the table
         TreeSet<IntPair> pixels_to_look_at = new TreeSet<IntPair>();
-        HashSet<IntPair> pixels_looked_at = new HashSet<IntPair>();
-        pixels_to_look_at.add(new IntPair(w/2, h/2));
-        pixels_looked_at.add(new IntPair(w/2, h/2));
-        boolean[][] table = new boolean[w][h];
+        pixels_to_look_at.add(new IntPair(center_x, center_y));
+        magic[w/2][h/2] += 1000;
         int threshold = 4;
         while (!pixels_to_look_at.isEmpty()) {
             IntPair pixel = pixels_to_look_at.first();
             pixels_to_look_at.remove(pixel);
             if (pixel.x != 0) {
-                if (Math.abs(intensities[pixel.x - 1][pixel.y] - intensities[pixel.x][pixel.y]) < threshold) {
+                if (Math.abs(magic[pixel.x - 1][pixel.y]%1000 - magic[pixel.x][pixel.y]%1000) < threshold) {
                     IntPair new_pixel = new IntPair(pixel.x - 1, pixel.y);
-                    if (!pixels_looked_at.contains(new_pixel)) {
-                        pixels_looked_at.add(new_pixel);
+                    if (magic[pixel.x-1][pixel.y] < 1000) {
+                        magic[pixel.x-1][pixel.y] += 1000;
                         pixels_to_look_at.add(new_pixel);
                     }
                 }
             }
             if (pixel.y != 0) {
-                if (Math.abs(intensities[pixel.x][pixel.y - 1] - intensities[pixel.x][pixel.y]) < threshold) {
+                if (Math.abs(magic[pixel.x][pixel.y - 1]%1000 - magic[pixel.x][pixel.y]%1000) < threshold) {
                     IntPair new_pixel = new IntPair(pixel.x, pixel.y - 1);
-                    if (!pixels_looked_at.contains(new_pixel)) {
-                        pixels_looked_at.add(new_pixel);
+                    if (magic[pixel.x][pixel.y-1] < 1000) {
+                        magic[pixel.x][pixel.y-1] += 1000;
                         pixels_to_look_at.add(new_pixel);
                     }
                 }
             }
             if (pixel.x != w - 1) {
-                if (Math.abs(intensities[pixel.x + 1][pixel.y] - intensities[pixel.x][pixel.y]) < threshold) {
+                if (Math.abs(magic[pixel.x + 1][pixel.y]%1000 - magic[pixel.x][pixel.y]%1000) < threshold) {
                     IntPair new_pixel = new IntPair(pixel.x + 1, pixel.y);
-                    if (!pixels_looked_at.contains(new_pixel)) {
-                        pixels_looked_at.add(new_pixel);
+                    if (magic[pixel.x+1][pixel.y] < 1000) {
+                        magic[pixel.x+1][pixel.y] += 1000;
                         pixels_to_look_at.add(new_pixel);
                     }
                 }
             }
             if (pixel.y != h - 1) {
-                if (Math.abs(intensities[pixel.x][pixel.y + 1] - intensities[pixel.x][pixel.y]) < threshold) {
+                if (Math.abs(magic[pixel.x][pixel.y + 1]%1000 - magic[pixel.x][pixel.y]%1000) < threshold) {
                     IntPair new_pixel = new IntPair(pixel.x, pixel.y + 1);
-                    if (!pixels_looked_at.contains(new_pixel)) {
-                        pixels_looked_at.add(new_pixel);
+                    if (magic[pixel.x][pixel.y+1] < 1000) {
+                        magic[pixel.x][pixel.y+1] += 1000;
                         pixels_to_look_at.add(new_pixel);
                     }
                 }
             }
-            table[pixel.x][pixel.y] = true;
+            magic[pixel.x][pixel.y] += 1000;
         }
         long painting_time = System.currentTimeMillis();
 
 
         // find the edges (and lots of noise in the table)
-        int[][] borders = new int[w][h];
         IntPair farthest_point = new IntPair(w/2, h/2);
         double max_dist = 0;
         for (int x = 1; x < w - 1; ++x) {
             for (int y = 1; y < h - 1; ++y) {
-                if (!table[x][y]) {
-                    if (table[x+1][y] || table[x-1][y] || table[x][y+1] || table[x][y-1]) {
-                        borders[x][y] = 1;
+                if (magic[x][y] < 1000) {
+                    if ((2000 <= magic[x+1][y] && magic[x+1][y] < 3000) || (2000 <= magic[x-1][y] && magic[x-1][y] < 3000) || (2000 <= magic[x][y-1] && magic[x][y-1] < 3000) || (2000 <= magic[x][y+1] && magic[x][y+1] < 3000)) {
+                        magic[x][y] = (magic[x][y]%1000) + 3000;
                         double dist = (x-w/2.0)*(x-w/2.0) + (y-h/2.0)*(y-h/2.0);
                         if (dist > max_dist) {
                             max_dist = dist;
@@ -195,55 +215,44 @@ public class PaintMethod {
         }
         long borders_time = System.currentTimeMillis();
 
-
         // eliminate the noise in the middle of the table
         pixels_to_look_at = new TreeSet<IntPair>();
-        pixels_looked_at = new HashSet<IntPair>();
         pixels_to_look_at.add(farthest_point);
         while (!pixels_to_look_at.isEmpty()) {
             IntPair pixel = pixels_to_look_at.first();
-            pixels_looked_at.add(pixel);
+            magic[pixel.x][pixel.y] = (magic[pixel.x][pixel.y] % 1000) + 5000;
             pixels_to_look_at.remove(pixel);
-            borders[pixel.x][pixel.y] = 2;
-            if (pixel.x != 0 && borders[pixel.x - 1][pixel.y] == 1) {
+            if (pixel.x != 0 && 3000 < magic[pixel.x - 1][pixel.y] && magic[pixel.x - 1][pixel.y] < 5000) {
                 IntPair new_pixel = new IntPair(pixel.x - 1, pixel.y);
-                if (!pixels_looked_at.contains(new_pixel))
-                    pixels_to_look_at.add(new_pixel);
+                pixels_to_look_at.add(new_pixel);
             }
-            if (pixel.x != borders.length-1 && borders[pixel.x + 1][pixel.y] == 1) {
+            if (pixel.x != magic.length-1 && 3000 < magic[pixel.x + 1][pixel.y] && magic[pixel.x + 1][pixel.y] < 5000) {
                 IntPair new_pixel = new IntPair(pixel.x + 1, pixel.y);
-                if (!pixels_looked_at.contains(new_pixel))
-                    pixels_to_look_at.add(new_pixel);
+                pixels_to_look_at.add(new_pixel);
             }
-            if (pixel.y != 0 && borders[pixel.x][pixel.y - 1] == 1) {
+            if (pixel.y != 0 && 3000 < magic[pixel.x][pixel.y - 1] && magic[pixel.x][pixel.y - 1] < 5000) {
                 IntPair new_pixel = new IntPair(pixel.x, pixel.y - 1);
-                if (!pixels_looked_at.contains(new_pixel))
-                    pixels_to_look_at.add(new_pixel);
+                pixels_to_look_at.add(new_pixel);
             }
-            if (pixel.y != borders[0].length-1 && borders[pixel.x][pixel.y + 1] == 1) {
+            if (pixel.y != magic[0].length-1 && 3000 < magic[pixel.x][pixel.y + 1] && magic[pixel.x][pixel.y + 1] < 5000) {
                 IntPair new_pixel = new IntPair(pixel.x, pixel.y + 1);
-                if (!pixels_looked_at.contains(new_pixel))
-                    pixels_to_look_at.add(new_pixel);
+                pixels_to_look_at.add(new_pixel);
             }
-            if (pixel.x != 0 && pixel.y != 0 && borders[pixel.x - 1][pixel.y - 1] == 1) {
+            if (pixel.x != 0 && pixel.y != 0 && 3000 < magic[pixel.x - 1][pixel.y - 1] && magic[pixel.x - 1][pixel.y - 1] < 5000) {
                 IntPair new_pixel = new IntPair(pixel.x - 1, pixel.y - 1);
-                if (!pixels_looked_at.contains(new_pixel))
-                    pixels_to_look_at.add(new_pixel);
+                pixels_to_look_at.add(new_pixel);
             }
-            if (pixel.x != borders.length-1 && pixel.y != 0 && borders[pixel.x + 1][pixel.y - 1] == 1) {
+            if (pixel.x != magic.length-1 && pixel.y != 0 && 3000 < magic[pixel.x + 1][pixel.y - 1] && magic[pixel.x + 1][pixel.y - 1] < 5000) {
                 IntPair new_pixel = new IntPair(pixel.x + 1, pixel.y - 1);
-                if (!pixels_looked_at.contains(new_pixel))
-                    pixels_to_look_at.add(new_pixel);
+                pixels_to_look_at.add(new_pixel);
             }
-            if (pixel.x != 0 && pixel.y != borders[0].length-1 && borders[pixel.x - 1][pixel.y + 1] == 1) {
+            if (pixel.x != 0 && pixel.y != magic[0].length-1 && 3000 < magic[pixel.x - 1][pixel.y + 1] && magic[pixel.x - 1][pixel.y + 1] < 5000) {
                 IntPair new_pixel = new IntPair(pixel.x - 1, pixel.y + 1);
-                if (!pixels_looked_at.contains(new_pixel))
-                    pixels_to_look_at.add(new_pixel);
+                pixels_to_look_at.add(new_pixel);
             }
-            if (pixel.x != borders.length-1 && pixel.y != borders[0].length-1 && borders[pixel.x + 1][pixel.y + 1] == 1) {
+            if (pixel.x != magic.length-1 && pixel.y != magic[0].length-1 && 3000 < magic[pixel.x + 1][pixel.y + 1] && magic[pixel.x + 1][pixel.y + 1] < 5000) {
                 IntPair new_pixel = new IntPair(pixel.x + 1, pixel.y + 1);
-                if (!pixels_looked_at.contains(new_pixel))
-                    pixels_to_look_at.add(new_pixel);
+                pixels_to_look_at.add(new_pixel);
             }
         }
         long cleaning_time = System.currentTimeMillis();
@@ -252,17 +261,15 @@ public class PaintMethod {
         // find the most extreme pixels over various rotations of the coordinate actions
         TreeMap<IntPair, Integer> extrema = new TreeMap<IntPair, Integer>();
         for (double theta = 0; theta < Math.PI/2; theta += 10 * Math.PI/180) {
-            IntPair[] set = find_extrema(borders, theta);
+            IntPair[] set = find_extrema(magic, theta);
             for (i = 0; i < set.length; ++i) {
                 if (extrema.containsKey(set[i]))
                     extrema.put(set[i], extrema.get(set[i])+1);
                 else
                     extrema.put(set[i], 1);
-                ++borders[set[i].x][set[i].y];
             }
         }
         long extrema_time = System.currentTimeMillis();
-
 
         // condense these extrema into 4 (likely) corners
         for (IntPair key : extrema.keySet()) {
