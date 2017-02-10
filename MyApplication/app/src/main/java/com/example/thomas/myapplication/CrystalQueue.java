@@ -32,6 +32,7 @@ public class CrystalQueue<T>  {
         next = total;
     }
 
+    //enque a pair of x and y coodinates
     public int enqueue(T[] elements)
     {
         if (x_arr.length == total) {
@@ -47,6 +48,7 @@ public class CrystalQueue<T>  {
         return total;
     }
 
+    //returns a pair of x,y coodinates
     public T[] dequeue()
     {
         if (total == 0) throw new java.util.NoSuchElementException();
