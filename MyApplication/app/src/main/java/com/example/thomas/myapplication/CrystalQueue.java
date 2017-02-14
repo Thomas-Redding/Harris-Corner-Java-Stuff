@@ -4,7 +4,7 @@ package com.example.thomas.myapplication;
  * Created by Sabastian on 2/9/17.
  */
 
-public class CrystalQueue<T>  {
+public class CrystalQueue  {
 
     private int[] x_arr;
 
@@ -13,6 +13,10 @@ public class CrystalQueue<T>  {
     public CrystalQueue()
     {
         x_arr = new int[2];
+    }
+
+    public boolean is_empty() {
+        return total == 0;
     }
 
     private void resize(int capacity)

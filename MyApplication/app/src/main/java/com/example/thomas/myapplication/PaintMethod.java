@@ -147,50 +147,47 @@ public class PaintMethod {
 
 
         // "paint" the table
-        TreeSet<IntPair> pixels_to_look_at = new TreeSet<IntPair>();
-        pixels_to_look_at.add(new IntPair(center_x, center_y));
+        CrystalQueue pixels_to_look_at = new CrystalQueue();
+        pixels_to_look_at.enqueue(center_x, center_y);
         magic[w/2][h/2] += 1000;
         int threshold = 4;
-        while (!pixels_to_look_at.isEmpty()) {
-            IntPair pixel = pixels_to_look_at.first();
-            pixels_to_look_at.remove(pixel);
-            if (pixel.x != 0) {
-                if (Math.abs(magic[pixel.x - 1][pixel.y]%1000 - magic[pixel.x][pixel.y]%1000) < threshold) {
-                    IntPair new_pixel = new IntPair(pixel.x - 1, pixel.y);
-                    if (magic[pixel.x-1][pixel.y] < 1000) {
-                        magic[pixel.x-1][pixel.y] += 1000;
-                        pixels_to_look_at.add(new_pixel);
+        while (!pixels_to_look_at.is_empty()) {
+            int pixel = pixels_to_look_at.dequeue();
+            int pixel_x = pixel / 100000;
+            int pixel_y = pixel % 100000;
+            if (pixel_x != 0) {
+                if (Math.abs(magic[pixel_x - 1][pixel_y]%1000 - magic[pixel_x][pixel_y]%1000) < threshold) {
+                    if (magic[pixel_x-1][pixel_y] < 1000) {
+                        magic[pixel_x-1][pixel_y] += 1000;
+                        pixels_to_look_at.enqueue(pixel_x-1, pixel_y);
                     }
                 }
             }
-            if (pixel.y != 0) {
-                if (Math.abs(magic[pixel.x][pixel.y - 1]%1000 - magic[pixel.x][pixel.y]%1000) < threshold) {
-                    IntPair new_pixel = new IntPair(pixel.x, pixel.y - 1);
-                    if (magic[pixel.x][pixel.y-1] < 1000) {
-                        magic[pixel.x][pixel.y-1] += 1000;
-                        pixels_to_look_at.add(new_pixel);
+            if (pixel_y != 0) {
+                if (Math.abs(magic[pixel_x][pixel_y - 1]%1000 - magic[pixel_x][pixel_y]%1000) < threshold) {
+                    if (magic[pixel_x][pixel_y-1] < 1000) {
+                        magic[pixel_x][pixel_y-1] += 1000;
+                        pixels_to_look_at.enqueue(pixel_x, pixel_y-1);
                     }
                 }
             }
-            if (pixel.x != w - 1) {
-                if (Math.abs(magic[pixel.x + 1][pixel.y]%1000 - magic[pixel.x][pixel.y]%1000) < threshold) {
-                    IntPair new_pixel = new IntPair(pixel.x + 1, pixel.y);
-                    if (magic[pixel.x+1][pixel.y] < 1000) {
-                        magic[pixel.x+1][pixel.y] += 1000;
-                        pixels_to_look_at.add(new_pixel);
+            if (pixel_x != w - 1) {
+                if (Math.abs(magic[pixel_x + 1][pixel_y]%1000 - magic[pixel_x][pixel_y]%1000) < threshold) {
+                    if (magic[pixel_x+1][pixel_y] < 1000) {
+                        magic[pixel_x+1][pixel_y] += 1000;
+                        pixels_to_look_at.enqueue(pixel_x+1, pixel_y);
                     }
                 }
             }
-            if (pixel.y != h - 1) {
-                if (Math.abs(magic[pixel.x][pixel.y + 1]%1000 - magic[pixel.x][pixel.y]%1000) < threshold) {
-                    IntPair new_pixel = new IntPair(pixel.x, pixel.y + 1);
-                    if (magic[pixel.x][pixel.y+1] < 1000) {
-                        magic[pixel.x][pixel.y+1] += 1000;
-                        pixels_to_look_at.add(new_pixel);
+            if (pixel_y != h - 1) {
+                if (Math.abs(magic[pixel_x][pixel_y + 1]%1000 - magic[pixel_x][pixel_y]%1000) < threshold) {
+                    if (magic[pixel_x][pixel_y+1] < 1000) {
+                        magic[pixel_x][pixel_y+1] += 1000;
+                        pixels_to_look_at.enqueue(pixel_x, pixel_y+1);
                     }
                 }
             }
-            magic[pixel.x][pixel.y] += 1000;
+            magic[pixel_x][pixel_y] += 1000;
         }
         long painting_time = System.currentTimeMillis();
 
@@ -216,43 +213,43 @@ public class PaintMethod {
         long borders_time = System.currentTimeMillis();
 
         // eliminate the noise in the middle of the table
-        pixels_to_look_at = new TreeSet<IntPair>();
-        pixels_to_look_at.add(farthest_point);
-        while (!pixels_to_look_at.isEmpty()) {
-            IntPair pixel = pixels_to_look_at.first();
+        TreeSet<IntPair> pixels_to_look_at_b = new TreeSet<IntPair>();
+        pixels_to_look_at_b.add(farthest_point);
+        while (!pixels_to_look_at_b.isEmpty()) {
+            IntPair pixel = pixels_to_look_at_b.first();
             magic[pixel.x][pixel.y] = (magic[pixel.x][pixel.y] % 1000) + 5000;
-            pixels_to_look_at.remove(pixel);
+            pixels_to_look_at_b.remove(pixel);
             if (pixel.x != 0 && 3000 < magic[pixel.x - 1][pixel.y] && magic[pixel.x - 1][pixel.y] < 5000) {
                 IntPair new_pixel = new IntPair(pixel.x - 1, pixel.y);
-                pixels_to_look_at.add(new_pixel);
+                pixels_to_look_at_b.add(new_pixel);
             }
             if (pixel.x != magic.length-1 && 3000 < magic[pixel.x + 1][pixel.y] && magic[pixel.x + 1][pixel.y] < 5000) {
                 IntPair new_pixel = new IntPair(pixel.x + 1, pixel.y);
-                pixels_to_look_at.add(new_pixel);
+                pixels_to_look_at_b.add(new_pixel);
             }
             if (pixel.y != 0 && 3000 < magic[pixel.x][pixel.y - 1] && magic[pixel.x][pixel.y - 1] < 5000) {
                 IntPair new_pixel = new IntPair(pixel.x, pixel.y - 1);
-                pixels_to_look_at.add(new_pixel);
+                pixels_to_look_at_b.add(new_pixel);
             }
             if (pixel.y != magic[0].length-1 && 3000 < magic[pixel.x][pixel.y + 1] && magic[pixel.x][pixel.y + 1] < 5000) {
                 IntPair new_pixel = new IntPair(pixel.x, pixel.y + 1);
-                pixels_to_look_at.add(new_pixel);
+                pixels_to_look_at_b.add(new_pixel);
             }
             if (pixel.x != 0 && pixel.y != 0 && 3000 < magic[pixel.x - 1][pixel.y - 1] && magic[pixel.x - 1][pixel.y - 1] < 5000) {
                 IntPair new_pixel = new IntPair(pixel.x - 1, pixel.y - 1);
-                pixels_to_look_at.add(new_pixel);
+                pixels_to_look_at_b.add(new_pixel);
             }
             if (pixel.x != magic.length-1 && pixel.y != 0 && 3000 < magic[pixel.x + 1][pixel.y - 1] && magic[pixel.x + 1][pixel.y - 1] < 5000) {
                 IntPair new_pixel = new IntPair(pixel.x + 1, pixel.y - 1);
-                pixels_to_look_at.add(new_pixel);
+                pixels_to_look_at_b.add(new_pixel);
             }
             if (pixel.x != 0 && pixel.y != magic[0].length-1 && 3000 < magic[pixel.x - 1][pixel.y + 1] && magic[pixel.x - 1][pixel.y + 1] < 5000) {
                 IntPair new_pixel = new IntPair(pixel.x - 1, pixel.y + 1);
-                pixels_to_look_at.add(new_pixel);
+                pixels_to_look_at_b.add(new_pixel);
             }
             if (pixel.x != magic.length-1 && pixel.y != magic[0].length-1 && 3000 < magic[pixel.x + 1][pixel.y + 1] && magic[pixel.x + 1][pixel.y + 1] < 5000) {
                 IntPair new_pixel = new IntPair(pixel.x + 1, pixel.y + 1);
-                pixels_to_look_at.add(new_pixel);
+                pixels_to_look_at_b.add(new_pixel);
             }
         }
         long cleaning_time = System.currentTimeMillis();
