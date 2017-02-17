@@ -32,12 +32,13 @@ public class My_Canvas extends View {
         // HarrisCornerFinder hcf = new HarrisCornerFinder();
         // corner_info = hcf.findCorners(imageMap);
         // TableCornerFinder tcf = new TableCornerFinder();
-        System.out.println("START");
         // table_corners = tcf.findTableCorners(imageMap, corner_info.lst, corner_info.arr);
         // System.out.println("MID");
         PaintMethod sm = new PaintMethod();
+        long start = System.currentTimeMillis();
         stuff = sm.findCorners(imageMap);
-        System.out.println("END");
+        long end = System.currentTimeMillis();
+        System.out.println("time: " + (end - start) + " ms");
     }
 
     // http://stackoverflow.com/questions/4837715/how-to-resize-a-bitmap-in-android
