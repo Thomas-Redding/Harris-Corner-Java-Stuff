@@ -247,7 +247,7 @@ public class CornerFinder {
 
         // find the most extreme pixels over various rotations of the coordinate actions
         TreeMap<IntPair, Integer> extrema = new TreeMap<IntPair, Integer>();
-        for (double theta = 0; theta < Math.PI/2; theta += 10 * Math.PI/180) {
+        for (double theta = 0; theta < Math.PI/2; theta += 5 * Math.PI/180) {
             IntPair[] set = find_extrema(border_pixels, theta);
             for (i = 0; i < set.length; ++i) {
                 if (extrema.containsKey(set[i]))
@@ -288,6 +288,19 @@ public class CornerFinder {
             corners[i] = corner;
             extrema.remove(corner);
         }
+
+        for (i = 0; i < 4; ++i) {
+            for (int j = 0; j < 3; ++j) {
+                double first = Math.atan2(corners[j].y-center_y, corners[j].x-center_x);
+                double second = Math.atan2(corners[j+1].y-center_y, corners[j+1].x-center_x);
+                if (first > second) {
+                    IntPair temp = corners[j];
+                    corners[j] = corners[j+1];
+                    corners[j+1] = temp;
+                }
+            }
+        }
+
         return corners;
     }
 }
