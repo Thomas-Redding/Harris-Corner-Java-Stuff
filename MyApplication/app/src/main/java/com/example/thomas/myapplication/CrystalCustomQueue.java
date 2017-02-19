@@ -4,13 +4,13 @@ package com.example.thomas.myapplication;
  * Created by Sabastian on 2/9/17.
  */
 
-public class CrystalQueue  {
+public class CrystalCustomQueue {
 
     private int[] x_arr;
 
     private int total, first, next;
 
-    public CrystalQueue()
+    public CrystalCustomQueue()
     {
         x_arr = new int[2];
     }

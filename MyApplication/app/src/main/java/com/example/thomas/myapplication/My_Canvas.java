@@ -20,7 +20,7 @@ public class My_Canvas extends View {
     Bitmap imageMap;
     // HarrisCornerFinder.Array2D_List_Pair corner_info;
     // TableCornerFinder.IntPair[] table_corners;
-    Set<IntPair> stuff;
+    IntPair[] stuff;
     public My_Canvas(Context context) {
         super(context);
         paint = new Paint();
@@ -34,7 +34,7 @@ public class My_Canvas extends View {
         // TableCornerFinder tcf = new TableCornerFinder();
         // table_corners = tcf.findTableCorners(imageMap, corner_info.lst, corner_info.arr);
         // System.out.println("MID");
-        PaintMethod sm = new PaintMethod();
+        CornerFinder sm = new CornerFinder();
         long start = System.currentTimeMillis();
         stuff = sm.findCorners(imageMap);
         long end = System.currentTimeMillis();

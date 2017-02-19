@@ -4,13 +4,12 @@ import android.graphics.Bitmap;
 
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
 
 /**
  * Created by thomas on 2/4/17.
  */
 
-public class PaintMethod {
+public class CornerFinder {
     /*
      * a method to help debuging by printing out samples of the table in a grid
      */
@@ -35,7 +34,7 @@ public class PaintMethod {
      * @param theta - angle of the "x-axis"
      * @return array of the 4 extrema
      */
-    private IntPair[] find_extrema(CrystalQueue borders, double theta) {
+    private IntPair[] find_extrema(CrystalCustomQueue borders, double theta) {
         double cos = Math.cos(theta);
         double sin = Math.sin(theta);
         double adj;
@@ -107,7 +106,7 @@ public class PaintMethod {
         return max_key;
     }
 
-    public TreeSet<IntPair> findCorners(Bitmap img) {
+    public IntPair[] findCorners(Bitmap img) {
         return findCorners(img, img.getWidth()/2, img.getHeight()/2);
     }
 
@@ -117,7 +116,7 @@ public class PaintMethod {
      * @param img - the bitmap to find the table of
      * @return a set of corner-coordinates
      */
-    public TreeSet<IntPair> findCorners(Bitmap img, int center_x, int center_y) {
+    public IntPair[] findCorners(Bitmap img, int center_x, int center_y) {
         int w = img.getWidth();
         int h = img.getHeight();
 
@@ -144,7 +143,7 @@ public class PaintMethod {
 
 
         // "paint" the table
-        CrystalQueue pixels_to_look_at = new CrystalQueue();
+        CrystalCustomQueue pixels_to_look_at = new CrystalCustomQueue();
         pixels_to_look_at.enqueue(center_x, center_y);
         magic[w/2][h/2] += 1000;
         int threshold = 4;
@@ -209,8 +208,8 @@ public class PaintMethod {
         }
 
         // eliminate the noise in the middle of the table
-        CrystalQueue pixels_to_look_at_b = new CrystalQueue();
-        CrystalQueue border_pixels = new CrystalQueue();
+        CrystalCustomQueue pixels_to_look_at_b = new CrystalCustomQueue();
+        CrystalCustomQueue border_pixels = new CrystalCustomQueue();
         pixels_to_look_at_b.enqueue(farthest_point.x, farthest_point.y);
         while (!pixels_to_look_at_b.is_empty()) {
             int pixel = pixels_to_look_at_b.dequeue();
@@ -283,10 +282,10 @@ public class PaintMethod {
 
 
         // create set to return, and return it
-        TreeSet<IntPair> corners = new TreeSet<IntPair>();
+        IntPair[] corners = new IntPair[4];
         for (i = 0; i < 4; ++i) {
             IntPair corner = find_key_with_largest_value(extrema);
-            corners.add(corner);
+            corners[i] = corner;
             extrema.remove(corner);
         }
         return corners;
